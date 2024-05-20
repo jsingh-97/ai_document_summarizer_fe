@@ -1,24 +1,37 @@
-import logo from './logo.svg';
 import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState, useEffect} from 'react';
+import WelcomePage from './WelcomePage';
+import SummaryPage from './SummaryPage';
+import axios from 'axios';
 
 function App() {
+
+  const [sessionId, setSessionId] = useState("");
+  useEffect(() => {
+    const storedSessionId = localStorage.getItem('sessionId');
+    if (storedSessionId) {
+      setSessionId(storedSessionId);
+    }
+  }, []);    
+
+  const handleSessionCreation = async (userId) => {
+    try {
+      const response = await axios.post(`http://127.0.0.1:5001/session?user_id=${userId}`);
+      localStorage.setItem('sessionId', response.data.session_id);
+      setSessionId(response.data.session_id);   
+      return response
+    } catch (error) {
+      console.error(error);
+    }
+  };
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<WelcomePage onSessionCreate={handleSessionCreation}/>} />
+        <Route path="/summary" element={<SummaryPage sessionId={sessionId}/>} />
+      </Routes>
+    </Router>
   );
 }
 
